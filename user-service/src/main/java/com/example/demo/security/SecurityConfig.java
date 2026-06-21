@@ -25,23 +25,28 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
-            .csrf(csrf -> csrf.disable()) 
-            // Optional: If you see 401 errors in React, add .cors() here
+            .cors(cors -> {})   // ✅ FIXED (new syntax)
+            .csrf(csrf -> csrf.disable())
+
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                    .requestMatchers("/auth/**").permitAll() 
-                    .requestMatchers("/users/name/**").permitAll() 
-                    .requestMatchers("/users/**").hasRole("ADMIN") 
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()  // ✅ VERY IMPORTANT
+                    .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("/users/name/**").permitAll()
+                    .requestMatchers("/users/**").hasRole("ADMIN")
                     .anyRequest().authenticated()
             )
+
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
+
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable());
 
         return http.build();
-    }                                     
+    }                            
 }

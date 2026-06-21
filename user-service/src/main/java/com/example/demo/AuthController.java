@@ -97,4 +97,10 @@ public class AuthController {
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "User Registered Successfully"));
     }
+
+
+@RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
+public ResponseEntity<?> handleOptions() {
+    return ResponseEntity.ok().build();
+}
 }
