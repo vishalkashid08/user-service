@@ -80,24 +80,33 @@ public class AuthController {
     
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Email already exists"));
-        }
-        
-        // Hash password before saving
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        
-        // Ensure role is prefixed correctly for Spring Security
-        if (user.getRole() == null || user.getRole().isEmpty()) {
-            user.setRole("ROLE_USER");
-        } else if (!user.getRole().startsWith("ROLE_")) {
-            user.setRole("ROLE_" + user.getRole().toUpperCase());
-        }
-        
-        userRepository.save(user);
-        return ResponseEntity.ok(Map.of("message", "User Registered Successfully"));
-    }
+        try {
+            System.out.println("DEBUG: Incoming user = " + user.getEmail());
 
+            if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Email already exists"));
+            }
+
+            if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Password is required"));
+            }
+
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+            if (user.getRole() == null || user.getRole().isEmpty()) {
+                user.setRole("ROLE_USER");
+            }
+
+            userRepository.save(user);
+
+            return ResponseEntity.ok(Map.of("message", "User Registered Successfully"));
+
+        } catch (Exception e) {
+            e.printStackTrace(); // 🔥 THIS WILL SHOW REAL ERROR
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 
 @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
 public ResponseEntity<?> handleOptions() {
