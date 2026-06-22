@@ -28,21 +28,21 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            // ❌ COMPLETELY DISABLE CORS HANDLING IN SECURITY
-            .cors(cors -> cors.disable())
+            // ✅ ENABLE CORS (IMPORTANT)
+            .cors(cors -> {})  
 
             // ❌ DISABLE CSRF
             .csrf(csrf -> csrf.disable())
 
             .authorizeHttpRequests(auth -> auth
-                    // ✅ VERY IMPORTANT (ALLOW PREFLIGHT)
+                    // ✅ ALLOW PREFLIGHT
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                    // ✅ PUBLIC ENDPOINTS
+                    // ✅ PUBLIC
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/users/name/**").permitAll()
 
-                    // ✅ ADMIN ONLY
+                    // ✅ ADMIN
                     .requestMatchers("/users/**").hasRole("ADMIN")
 
                     .anyRequest().authenticated()
@@ -52,7 +52,6 @@ public class SecurityConfig {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
-            // ✅ JWT FILTER
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
             .formLogin(form -> form.disable())
