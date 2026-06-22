@@ -2,23 +2,24 @@ package com.example.demo;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestTemplate;
+
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
-@CrossOrigin(origins = "*") 
+@CrossOrigin(origins = "*")
 public class UserController {
 
     private final UserService service;
     private final UserRepository userRepository;
-    private final WebClient.Builder webClientBuilder;
+    private final RestTemplate restTemplate;
 
-    public UserController(UserService service, UserRepository userRepository, WebClient.Builder webClientBuilder) {
+    public UserController(UserService service, UserRepository userRepository) {
         this.service = service;
         this.userRepository = userRepository;
-        this.webClientBuilder = webClientBuilder;
+        this.restTemplate = new RestTemplate(); // ✅ SIMPLE FIX
     }
 
     @GetMapping("/name/{id}")
@@ -32,24 +33,21 @@ public class UserController {
     public ResponseEntity<?> getAdminStats() {
         long userCount = userRepository.count();
         Integer questionCount = 0;
-        
+
         try {
-            // Re-check that your Question-Service is actually running on 8082
-            questionCount = webClientBuilder.build()
-                .get()
-                .uri("http://localhost:8082/questions/count")
-                .retrieve()
-                .bodyToMono(Integer.class)
-                .block();
+            // ✅ CALL OTHER SERVICE USING RestTemplate
+            questionCount = restTemplate.getForObject(
+                    "http://localhost:8082/questions/count",
+                    Integer.class
+            );
         } catch (Exception e) {
-            // This is still appearing in your logs
-            System.err.println("Question Service unreachable for stats: " + e.getMessage());
+            System.err.println("Question Service unreachable: " + e.getMessage());
         }
 
         return ResponseEntity.ok(Map.of(
-            "userCount", userCount,
-            "questionCount", questionCount != null ? questionCount : 0,
-            "answerCount", 0 
+                "userCount", userCount,
+                "questionCount", questionCount != null ? questionCount : 0,
+                "answerCount", 0
         ));
     }
 
