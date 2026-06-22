@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.cors.*;
 
 import java.util.List;
@@ -18,7 +20,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
 
-            // ✅ THIS IS IMPORTANT
+            // ✅ Enable CORS
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
             .authorizeHttpRequests(auth -> auth
@@ -30,7 +32,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ✅ ADD THIS METHOD (CRITICAL)
+    // ✅ CORS Configuration
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
@@ -45,5 +47,11 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
 
         return source;
+    }
+
+    // ✅ 🔥 ADD THIS (VERY IMPORTANT)
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
