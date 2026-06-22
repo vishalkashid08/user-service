@@ -9,51 +9,42 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.cors.*;
-
-import java.util.List;
 
 @Configuration
 public class SecurityConfig {
 
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthFilter;
+    private final JwtAuthenticationFilter jwtAuthFilter;
 
-    // ✅ FIXED BEAN (IMPORTANT)
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
+        this.jwtAuthFilter = jwtAuthFilter;
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    // ✅ CORS CONFIG
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowedOriginPatterns(List.of("*")); // ✅ FIXED
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return source;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            .cors(cors -> {}) 
+            // ❌ COMPLETELY DISABLE CORS HANDLING IN SECURITY
+            .cors(cors -> cors.disable())
+
+            // ❌ DISABLE CSRF
             .csrf(csrf -> csrf.disable())
 
             .authorizeHttpRequests(auth -> auth
+                    // ✅ VERY IMPORTANT (ALLOW PREFLIGHT)
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                    // ✅ PUBLIC ENDPOINTS
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/users/name/**").permitAll()
+
+                    // ✅ ADMIN ONLY
                     .requestMatchers("/users/**").hasRole("ADMIN")
+
                     .anyRequest().authenticated()
             )
 
@@ -61,6 +52,7 @@ public class SecurityConfig {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
+            // ✅ JWT FILTER
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
             .formLogin(form -> form.disable())
