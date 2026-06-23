@@ -8,15 +8,16 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 @Configuration
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	    http
+	        .cors(cors -> {}) // enable CORS
+	        .csrf(csrf -> csrf.disable())
+	        .authorizeHttpRequests(auth -> auth
+	            .requestMatchers("/auth/**").permitAll()
+	            .anyRequest().authenticated()
+	        );
 
-        http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/**").permitAll()
-            );
-
-        return http.build();
-    }
+	    return http.build();
+	}
 }
