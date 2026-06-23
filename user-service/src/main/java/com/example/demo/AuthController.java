@@ -108,8 +108,5 @@ public class AuthController {
         }
     }
 
-@RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
-public ResponseEntity<?> handleOptions() {
-    return ResponseEntity.ok().build();
-}
+
 }
