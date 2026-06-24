@@ -29,7 +29,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ✅ THIS IS THE MISSING PART (CRITICAL)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
