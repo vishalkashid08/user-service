@@ -37,7 +37,7 @@ public class UserController {
         try {
             // ✅ CALL OTHER SERVICE USING RestTemplate
             questionCount = restTemplate.getForObject(
-                    "http://localhost:8082/questions/count",
+                    "http://3.110.167.15:8082/questions/count",
                     Integer.class
             );
         } catch (Exception e) {
